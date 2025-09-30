@@ -43,15 +43,22 @@
         <p style="color: #FF5722;">**This call uses your device's microphone and internet (WebRTC).**</p>
     </div>
 
-    <script 
-        src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" 
-        async 
-        type="text/javascript">
+    <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
+
+    <script>
+        // Dynamically inject the public-key into the vapi-widget
+        window.onload = function() {
+            const vapiWidget = document.querySelector('vapi-widget');
+            if (vapiWidget) {
+                // The public key can be injected from an environment variable or secret
+                vapiWidget.setAttribute('public-key', process.env.PUBLICKEY);
+                vapiWidget.setAttribute('assistant-id', process.env.ASSISTANTID);
+            }
+        };
     </script>
-    
+
     <vapi-widget
-        public-key="7381b5ac-d4a7-46aa-895d-0003fa16d337"
-        assistant-id="f62f4b24-c609-4c0a-a00d-362d12bed70e"
+       
         mode="voice" 
         size="compact"
         theme="light"
