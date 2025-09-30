@@ -1,0 +1,56 @@
+name: Deploy Website
+
+on:
+  push:
+    branches:
+      - main   # Runs when pushing to main branch
+  workflow_dispatch:  # Allow manual trigger from Actions tab
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
+      VAPI_ASSISTANT_ID: ${{ secrets.VAPI_ASSISTANT_ID }}
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Set up Node.js (skip if pure HTML repo)
+      #- name: Set up Node.js
+      # uses: actions/setup-node@v4
+       # with:
+         # node-version: '18'
+
+      # 3. Install dependencies (skip if no package.json)
+     # - name: Install dependencies
+      #  run: |
+       #   if [ -f package.json ]; then
+      #      npm install
+      #    fi
+
+      # 4. Build project (skip if not needed)
+      - name: Build project
+        run: |
+          if [ -f package.json ]; then
+            npm run build
+          fi
+
+      # 5. Inject secrets into HTML/JS
+      - name: Inject Vapi secrets
+        run: |
+          echo "Injecting Vapi API key and Assistant ID..."
+          find . -type f \( -name "*.html" -o -name "*.js" \) -print0 | \
+          xargs -0 sed -i "s|__PUBLICKEY__|$PUBLICKEY|g"
+          find . -type f \( -name "*.html" -o -name "*.js" \) -print0 | \
+          xargs -0 sed -i "s|__ASSISTANTID__|$ASSISTANTID|g"
+
+      # 6. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist   # Change if your build output is in a different folder
