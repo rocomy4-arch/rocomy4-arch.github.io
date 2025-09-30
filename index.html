@@ -1,65 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Restaurant Reservation AI Agent</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 50px;
-      background-color: #f4f4f9;
-    }
-    .container {
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      display: inline-block;
-    }
-    h1 {
-      color: #333;
-    }
-    p {
-      color: #666;
-      margin-bottom: 20px;
-    }
-    /* Custom styling for the Vapi button */
-    vapi-widget::part(floating-button) {
-      background-color: #4CAF50 !important; /* Restaurant Green */
-      color: white !important;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Us for Reservations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        /* Custom styling for the Vapi button */
+        vapi-widget::part(floating-button) {
+            background-color: #4CAF50 !important; /* Restaurant Green */
+            color: white !important;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to [Restaurant Name]</h1>
-    <p>Your AI assistant is ready to take your reservation instantly.</p>
-    <p>Click the green button in the corner to start a voice call.</p>
-    <p style="color: #FF5722;">
-      **This call uses your device's microphone and internet (WebRTC).**
-    </p>
-  </div>
 
-  <!-- Vapi widget -->
-  <script
-    src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
-    async
-    type="text/javascript">
-  </script>
+    <div class="container">
+        <h1>Welcome to Aivox Bistro</h1>
+        <p>We are ready to take your reservation instantly.</p>
+        <p>Click the green button in the corner to start a voice call.</p>
+        <p style="color: #FF5722;">*This call uses your device's microphone and internet.*</p>
+    </div>
 
-  <!-- Inject placeholders (will be replaced in GitHub Actions) -->
-  <vapi-widget
-    public-key="__VAPI_API_KEY__"
-    assistant-id="__VAPI_ASSISTANT_ID__"
-    mode="voice"
-    size="compact"
-    theme="light"
-    empty-voice-message="Tap to start your reservation call"
-    start-button-text="Call to Book">
-  </vapi-widget>
+    <script 
+        src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" 
+        async 
+        type="text/javascript">
+    </script>
+    
+    <vapi-widget
+        public-key="7381b5ac-d4a7-46aa-895d-0003fa16d337"
+        assistant-id="f62f4b24-c609-4c0a-a00d-362d12bed70e"
+        mode="voice" 
+        size="compact"
+        theme="light"
+        empty-voice-message="Tap to start your reservation call"
+        start-button-text="Call to Book"
+    ></vapi-widget>
+
 </body>
 </html>
