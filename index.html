@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Call Us for Reservations - Aivox Bistro</title>
+    <title>Call Us for Reservations - BPJS Customer Support</title>
     <!-- Load Tailwind CSS for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -71,50 +71,82 @@
         </div>
 
         <div id="call-status" class="mt-6 p-3 text-sm rounded-lg bg-gray-100 text-gray-700">
-            Current Status: Ready to connect.
+            Current Status: Waiting for client to load...
         </div>
         
     </div>
 
     <!-- 
         ====================================================================
-        VAPI Core SDK AND WHITE-LABEL LOGIC
-        FIXED: Switched to the UMD (Universal Module Definition) version of the VAPI Web SDK.
-        The previous link was for a module-style import which caused 'Vapi is not defined'.
+        VAPI Core SDK (UMD link)
     -->
     <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi-sdk.umd.js"></script>
     <script>
-        // 1. Encapsulate Keys (Hide from easy view in HTML, move to JS scope)
-        // These are the ONLY two places where your keys are stored in the client.
-        const PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337'; // YOUR PUBLIC KEY
-        const ASSISTANT_ID = 'f62f4b24-c609-4c0a-a00d-362d12bed70e';     // YOUR ASSISTANT ID
+        // 1. Encapsulate Keys 
+        const PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337'; 
+        const ASSISTANT_ID = 'f62f4b24-c609-4c0a-a00d-362d12bed70e';
         
-        // Vapi is now defined globally by the UMD script above.
-        const agent = new Vapi(PUBLIC_KEY);
+        // Declare Vapi client globally.
+        let agent = null; 
         let currentCallButton = null;
 
         const statusDisplay = document.getElementById('call-status');
+        
+        // --- Initialization Function ---
+        // We use a self-executing function that runs immediately, 
+        // but it checks the Vapi object's existence and handles initialization.
+        function initVapiClient() {
+             // CRITICAL FIX: Ensure Vapi is available in the global scope before instantiating.
+             // We use a setTimeout loop as the most robust way to poll for a globally defined variable
+             // when dealing with CDN scripts that load asynchronously relative to the main script block.
+             if (typeof Vapi !== 'undefined') {
+                 try {
+                    agent = new Vapi(PUBLIC_KEY);
+                    console.log('VAPI client initialized successfully.');
+                    
+                    setupVapiListeners();
+                    updateUIState('ready'); // Set initial state
+                    
+                } catch (e) {
+                    statusDisplay.textContent = `CRITICAL ERROR: Failed to initialize VAPI. Check Public Key.`;
+                    statusDisplay.classList.remove('bg-gray-100');
+                    statusDisplay.classList.add('bg-red-500', 'text-white');
+                    console.error("VAPI Initialization Error:", e);
+                }
+             } else {
+                 // Retry initialization every 100ms until Vapi is defined.
+                 // This resolves the timing issue that window.onload couldn't fix.
+                 setTimeout(initVapiClient, 100);
+             }
+        }
+        
+        // Start the initialization check immediately
+        initVapiClient();
+
 
         // Helper function to update the UI state
         function updateUIState(state, btn = null) {
             const allButtons = document.querySelectorAll('.call-btn');
-            allButtons.forEach(b => b.disabled = (state !== 'ready'));
+            
+            // Check if the agent is initialized 
+            const isReady = state === 'ready' && agent !== null;
+            allButtons.forEach(b => b.disabled = !isReady);
             
             statusDisplay.textContent = `Current Status: ${state.toUpperCase()}`;
 
+            // --- Simplified Tailwind Class Toggle ---
+            statusDisplay.classList.remove('bg-gray-100', 'bg-blue-200', 'bg-green-200', 'bg-red-200', 'bg-red-500');
+
             if (state === 'connecting') {
-                statusDisplay.classList.remove('bg-gray-100');
                 statusDisplay.classList.add('bg-blue-200');
                 if (btn) btn.innerText = "Connecting...";
             } else if (state === 'active') {
-                statusDisplay.classList.remove('bg-blue-200');
                 statusDisplay.classList.add('bg-green-200');
                 if (btn) {
                     btn.innerText = "Click to END CALL";
                     btn.classList.add('active-call');
                 }
             } else { // ready or ended
-                statusDisplay.classList.remove('bg-blue-200', 'bg-green-200');
                 statusDisplay.classList.add('bg-gray-100');
                 allButtons.forEach(b => {
                     b.classList.remove('active-call');
@@ -128,10 +160,18 @@
 
         // --- Core Call Control Function ---
         function startCall(language) {
+            // Check if Vapi client is actually ready before trying to use it
+            if (!agent) {
+                 statusDisplay.textContent = 'ERROR: Agent not ready. Please wait for initialization.';
+                 statusDisplay.classList.add('bg-red-200');
+                 return;
+            }
+
             currentCallButton = document.getElementById(`btn-${language.slice(0, 2).toLowerCase()}`);
             
-            if (agent.getCallState() === 'active') {
-                agent.stop();
+            // Logic to end the call if it's already active
+            if (agent.getCallState() === 'active') { 
+                agent.stop(); 
                 updateUIState('ending');
                 return;
             }
@@ -140,41 +180,38 @@
 
             const overrides = {
                 // We use the language preference in the first message to force the AI context
-                firstMessage: `Hello, thank you for calling BPJS Customer Support. I see you selected ${language}.`,
+                firstMessage: `Hello, thank you for calling BPJS Customer Support. I see you selected ${language}. How may I help you today?`,
                 // You can set the language variable directly for the AI model if needed
                 variableValues: { preferred_language: language }
             };
             
             agent.start(ASSISTANT_ID, { assistantOverrides: overrides });
         }
+        
+        // --- VAPI Event Listeners Setup ---
+        function setupVapiListeners() {
+            agent.on('call-start', () => {
+                updateUIState('active', currentCallButton);
+                console.log('Call started successfully.');
+            });
 
-        // --- VAPI Event Listeners for UI Feedback ---
-        agent.on('call-start', () => {
-            updateUIState('active', currentCallButton);
-            console.log('Call started successfully.');
-        });
+            agent.on('call-end', () => {
+                setTimeout(() => {
+                    updateUIState('ready');
+                    console.log('Call ended.');
+                }, 1000); 
+            });
 
-        agent.on('call-end', () => {
-            // Wait a moment for the UI to show "ending" before returning to "ready"
-            setTimeout(() => {
+            agent.on('error', (e) => {
+                statusDisplay.textContent = `ERROR: Failed to connect. ${e.message}`;
+                statusDisplay.classList.remove('bg-green-200');
+                statusDisplay.classList.add('bg-red-200');
+                console.error("VAPI Error:", e);
                 updateUIState('ready');
-                console.log('Call ended.');
-            }, 1000); 
-        });
-
-        agent.on('error', (e) => {
-            statusDisplay.textContent = `ERROR: Failed to connect. ${e.message}`;
-            statusDisplay.classList.remove('bg-green-200');
-            statusDisplay.classList.add('bg-red-200');
-            console.error("VAPI Error:", e);
-            updateUIState('ready');
-        });
-
-        // Initialize state on load
-        updateUIState('ready');
+            });
+        }
+        
     </script>
 
 </body>
 </html>
-
-
