@@ -39,7 +39,11 @@ body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; min-height:1
 </div>
 
 <!-- VAPI Web SDK via CDN -->
-<script src="https://unpkg.com/@vapi-ai/web/dist/vapi-sdk.umd.js" defer></script>
+<script
+  src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
+  async
+  type="text/javascript"
+></script>
 
 <script>
 const PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337';
@@ -147,3 +151,4 @@ function setupVapiListeners(){
 
 </body>
 </html>
+
