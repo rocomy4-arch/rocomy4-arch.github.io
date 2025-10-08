@@ -38,9 +38,8 @@ body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; min-height:1
 </div>
 </div>
 
-<!-- Vapi Web SDK (Use local copy or CDN) -->
-<script src="vapi-sdk.umd.js" defer></script>
-<!-- <script src="https://unpkg.com/@vapi-ai/web"></script> -->
+<!-- VAPI Web SDK via CDN -->
+<script src="https://unpkg.com/@vapi-ai/web/dist/vapi-sdk.umd.js" defer></script>
 
 <script>
 const PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337';
@@ -52,29 +51,29 @@ let currentCallButton = null;
 const statusDisplay = document.getElementById('call-status');
 
 window.addEventListener('load', () => {
-    if (typeof Vapi !== 'undefined') {
-        try {
-            agent = new Vapi(PUBLIC_KEY); // Initialize WebRTC client
-            console.log('VAPI client initialized successfully.');
-            setupVapiListeners();
-            updateUIState('ready');
-        } catch(e) {
-            statusDisplay.textContent = 'CRITICAL ERROR: Failed to initialize VAPI.';
-            statusDisplay.classList.replace('bg-gray-100','bg-red-500');
-            statusDisplay.classList.add('text-white');
-            console.error("VAPI Init Error:", e);
+    // Wait until the VAPI SDK loads
+    const checkInterval = setInterval(()=>{
+        if(typeof Vapi !== 'undefined'){
+            clearInterval(checkInterval);
+            try{
+                agent = new Vapi(PUBLIC_KEY);
+                console.log('VAPI client initialized successfully.');
+                setupVapiListeners();
+                updateUIState('ready');
+            }catch(e){
+                statusDisplay.textContent='CRITICAL ERROR: Failed to initialize VAPI.';
+                statusDisplay.classList.replace('bg-gray-100','bg-red-500');
+                statusDisplay.classList.add('text-white');
+                console.error("VAPI Init Error:", e);
+            }
         }
-    } else {
-        statusDisplay.textContent = 'CRITICAL ERROR: VAPI SDK not found.';
-        statusDisplay.classList.replace('bg-gray-100','bg-red-500');
-        statusDisplay.classList.add('text-white');
-    }
+    },100);
 });
 
 function updateUIState(state, btn=null){
-    const allButtons = document.querySelectorAll('.call-btn');
-    const isReady = state==='ready' && agent!==null;
-    allButtons.forEach(b=>b.disabled = !isReady);
+    const allButtons=document.querySelectorAll('.call-btn');
+    const isReady=state==='ready' && agent!==null;
+    allButtons.forEach(b=>b.disabled=!isReady);
 
     statusDisplay.classList.remove('bg-gray-100','bg-blue-200','bg-green-200','bg-red-200','bg-red-500');
 
@@ -120,7 +119,7 @@ function startCall(language){
 
     const overrides={
         firstMessage:`Hello, thank you for calling BPJS Customer Support. I see you selected ${language}. Please conduct the entire conversation in ${language}. How may I help you today?`,
-        variableValues:{preferred_language: language}
+        variableValues:{preferred_language:language}
     };
 
     agent.start(ASSISTANT_ID,{assistantOverrides:overrides});
@@ -128,7 +127,7 @@ function startCall(language){
 
 function setupVapiListeners(){
     agent.on('call-start',()=>{
-        updateUIState('active', currentCallButton);
+        updateUIState('active',currentCallButton);
         console.log('Call started.');
     });
 
@@ -145,5 +144,6 @@ function setupVapiListeners(){
     });
 }
 </script>
+
 </body>
 </html>
