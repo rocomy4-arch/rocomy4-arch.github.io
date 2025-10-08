@@ -42,8 +42,8 @@
 
     <div class="container bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full">
         
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome to Aivox Bistro</h1>
-        <p class="text-lg text-gray-600 mb-8">Select your language to speak with our reservation assistant.</p>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">BPJS Customer Support</h1>
+        <p class="text-lg text-gray-600 mb-8">Select your language to speak with our customer support.</p>
 
         <!-- Language Selection Buttons -->
         <div id="language-buttons" class="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0 justify-center mb-8">
@@ -57,9 +57,9 @@
 
             <button 
                 id="btn-ms"
-                onclick="startCall('Bahasa Melayu')" 
+                onclick="startCall('Bahasa Indonesia')" 
                 class="call-btn py-3 px-6 bg-yellow-500 text-gray-900 font-semibold rounded-lg text-sm">
-                Bahasa Melayu
+                Bahasa Indonesia
             </button>
 
             <button 
@@ -86,11 +86,11 @@
     <script>
         // 1. Encapsulate Keys (Hide from easy view in HTML, move to JS scope)
         // These are the ONLY two places where your keys are stored in the client.
-        const VAPI_PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337'; // YOUR PUBLIC KEY
+        const PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337'; // YOUR PUBLIC KEY
         const ASSISTANT_ID = 'f62f4b24-c609-4c0a-a00d-362d12bed70e';     // YOUR ASSISTANT ID
         
         // Vapi is now defined globally by the UMD script above.
-        const vapi = new Vapi(VAPI_PUBLIC_KEY);
+        const agent = new Vapi(PUBLIC_KEY);
         let currentCallButton = null;
 
         const statusDisplay = document.getElementById('call-status');
@@ -120,7 +120,7 @@
                     b.classList.remove('active-call');
                     // Reset text based on ID
                     if(b.id === 'btn-en') b.innerText = 'English';
-                    if(b.id === 'btn-ms') b.innerText = 'Bahasa Melayu';
+                    if(b.id === 'btn-ms') b.innerText = 'Bahasa Indonesia';
                     if(b.id === 'btn-zh') b.innerText = 'Mandarin';
                 });
             }
@@ -130,8 +130,8 @@
         function startCall(language) {
             currentCallButton = document.getElementById(`btn-${language.slice(0, 2).toLowerCase()}`);
             
-            if (vapi.getCallState() === 'active') {
-                vapi.stop();
+            if (agent.getCallState() === 'active') {
+                agent.stop();
                 updateUIState('ending');
                 return;
             }
@@ -145,16 +145,16 @@
                 variableValues: { preferred_language: language }
             };
             
-            vapi.start(ASSISTANT_ID, { assistantOverrides: overrides });
+            agent.start(ASSISTANT_ID, { assistantOverrides: overrides });
         }
 
         // --- VAPI Event Listeners for UI Feedback ---
-        vapi.on('call-start', () => {
+        agent.on('call-start', () => {
             updateUIState('active', currentCallButton);
             console.log('Call started successfully.');
         });
 
-        vapi.on('call-end', () => {
+        agent.on('call-end', () => {
             // Wait a moment for the UI to show "ending" before returning to "ready"
             setTimeout(() => {
                 updateUIState('ready');
@@ -162,7 +162,7 @@
             }, 1000); 
         });
 
-        vapi.on('error', (e) => {
+        agent.on('error', (e) => {
             statusDisplay.textContent = `ERROR: Failed to connect. ${e.message}`;
             statusDisplay.classList.remove('bg-green-200');
             statusDisplay.classList.add('bg-red-200');
@@ -176,3 +176,4 @@
 
 </body>
 </html>
+
