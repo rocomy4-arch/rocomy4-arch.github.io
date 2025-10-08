@@ -1,154 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BPJS AI Customer Support</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; min-height:100vh; display:flex; justify-content:center; align-items:center; }
-.call-btn { transition: all 0.2s ease-in-out; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1); min-width:150px;}
-.call-btn:hover:enabled { opacity:0.9; transform:translateY(-1px);}
-.call-btn:disabled { opacity:0.6; cursor:not-allowed;}
-.active-call { background-color:#DC3545 !important; }
-.flag-emoji { font-size:1.25rem; margin-right:0.5rem;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vapi AI Assistant Demo</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a polished look */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        #stopButton {
+            display: none; /* Hidden by default */
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
 
-<div class="container bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full">
-<h1 class="text-3xl font-bold text-gray-800 mb-2">BPJS Customer Support</h1>
-<p class="text-lg text-gray-600 mb-8">Select your language to speak with our AI support agent.</p>
+    <div class="text-center p-8 max-w-2xl w-full">
+        <div class="bg-white p-10 rounded-xl shadow-lg">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Vapi AI Voice Assistant</h1>
+            <p class="text-gray-600 mb-8">
+                Welcome to the demonstration of our Vapi-powered voice assistant. Please select your preferred language below to start the conversation. The assistant will ask for microphone permission and begin speaking in the language you choose.
+            </p>
 
-<div id="language-buttons" class="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0 justify-center mb-8">
-    <button id="btn-en" onclick="startCall('English')" class="call-btn py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg text-sm" disabled>
-        <span class="flag-emoji">🇬🇧</span> English
-    </button>
-    <button id="btn-ms" onclick="startCall('Bahasa Indonesia')" class="call-btn py-3 px-6 bg-yellow-500 text-gray-900 font-semibold rounded-lg text-sm" disabled>
-        <span class="flag-emoji">🇮🇩</span> Bahasa Indonesia
-    </button>
-    <button id="btn-zh" onclick="startCall('Mandarin')" class="call-btn py-3 px-6 bg-red-600 text-white font-semibold rounded-lg text-sm" disabled>
-        <span class="flag-emoji">🇨🇳</span> Mandarin
-    </button>
-</div>
+            <div class="max-w-xs mx-auto mb-6">
+                <label for="languageSelector" class="block text-sm font-medium text-gray-700 mb-2">Choose a language to begin:</label>
+                <select id="languageSelector" name="language" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+                    <option value="" disabled selected>Select your language...</option>
+                    <option value="en-US">English (US)</option>
+                    <option value="es-ES">Spanish</option>
+                    <option value="fr-FR">French</option>
+                    <option value="de-DE">German</option>
+                    <option value="it-IT">Italian</option>
+                    <option value="pt-BR">Portuguese (Brazil)</option>
+                    <option value="ja-JP">Japanese</option>
+                    <option value="ko-KR">Korean</option>
+                    <option value="zh-CN">Chinese (Mandarin)</option>
+                    <option value="hi-IN">Hindi</option>
+                    <option value="ar-SA">Arabic</option>
+                </select>
+            </div>
 
-<div id="call-status" class="mt-6 p-3 text-sm rounded-lg bg-gray-100 text-gray-700">
-    Current Status: Waiting for VAPI SDK...
-</div>
-</div>
+            <div id="status" class="my-4 text-gray-600 h-6">Select a language to begin the voice call.</div>
 
-<!-- VAPI Web SDK via CDN -->
-<script
-  src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js"
-  async
-  type="text/javascript"
-></script>
+            <button id="stopButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors duration-300">
+                End Call
+            </button>
+        </div>
+        <footer class="mt-8 text-sm text-gray-500">
+            <p>Powered by Vapi AI</p>
+        </footer>
+    </div>
 
-<script>
-const PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337';
-const ASSISTANT_ID = 'f62f4b24-c609-4c0a-a00d-362d12bed70e';
+    <!-- The Vapi SDK script tag is now removed from here. We will load it dynamically. -->
 
-let agent = null;
-let currentCallButton = null;
+    <script>
+        // Use window.onload to ensure the basic page structure is ready.
+        window.onload = () => {
+            // --- DYNAMIC SCRIPT LOADING ---
+            // Create a new script element for the Vapi SDK.
+            const vapiScript = document.createElement('script');
+            vapiScript.src = 'https://unpkg.com/@vapi-ai/web@latest/dist/vapi.umd.js';
+            document.body.appendChild(vapiScript);
 
-const statusDisplay = document.getElementById('call-status');
+            // Set up an onload handler for the script.
+            // This function will only execute after the Vapi SDK has been downloaded and parsed.
+            vapiScript.onload = () => {
+                initializeVapi();
+            };
+        };
 
-window.addEventListener('load', () => {
-    // Wait until the VAPI SDK loads
-    const checkInterval = setInterval(()=>{
-        if(typeof Vapi !== 'undefined'){
-            clearInterval(checkInterval);
-            try{
-                agent = new Vapi(PUBLIC_KEY);
-                console.log('VAPI client initialized successfully.');
-                setupVapiListeners();
-                updateUIState('ready');
-            }catch(e){
-                statusDisplay.textContent='CRITICAL ERROR: Failed to initialize VAPI.';
-                statusDisplay.classList.replace('bg-gray-100','bg-red-500');
-                statusDisplay.classList.add('text-white');
-                console.error("VAPI Init Error:", e);
+        function initializeVapi() {
+            const languageSelector = document.getElementById('languageSelector');
+            const stopButton = document.getElementById('stopButton');
+            const statusDiv = document.getElementById('status');
+
+            const publicKey = '7381b5ac-d4a7-46aa-895d-0003fa16d337';
+            const assistantId = 'f62f4b24-c609-4c0a-a00d-362d12bed70e';
+
+            // Initialize Vapi SDK.
+            // This is now safe because this code runs inside the script's onload handler.
+            const vapi = new Vapi(publicKey);
+
+            // --- Vapi Event Listeners ---
+            vapi.on('call-start', () => {
+                console.log('Call has started');
+                statusDiv.textContent = 'Conversation in progress...';
+                stopButton.style.display = 'inline-block';
+                languageSelector.disabled = true;
+            });
+
+            vapi.on('call-end', () => {
+                console.log('Call has ended');
+                statusDiv.textContent = 'Call ended. Select a new language to talk again.';
+                stopButton.style.display = 'none';
+                languageSelector.disabled = false;
+                // Reset selector to placeholder
+                languageSelector.value = "";
+            });
+
+            vapi.on('error', (e) => {
+                console.error('Vapi error:', e);
+                statusDiv.textContent = 'An error occurred. Please refresh and try again.';
+                stopButton.style.display = 'none';
+                languageSelector.disabled = false;
+                languageSelector.value = "";
+            });
+
+            /**
+             * Starts the Vapi call with the selected language.
+             * @param {string} language - The language code (e.g., 'en-US').
+             */
+            function startCall(language) {
+                statusDiv.textContent = 'Connecting...';
+                const assistantOverrides = {
+                    variableValues: {
+                        language: language
+                    }
+                };
+                vapi.start(assistantId, assistantOverrides);
             }
+
+            // --- UI Event Listeners ---
+            languageSelector.addEventListener('change', (event) => {
+                const selectedLanguage = event.target.value;
+                if (selectedLanguage) {
+                    startCall(selectedLanguage);
+                }
+            });
+
+            stopButton.addEventListener('click', () => {
+                vapi.stop();
+            });
         }
-    },100);
-});
-
-function updateUIState(state, btn=null){
-    const allButtons=document.querySelectorAll('.call-btn');
-    const isReady=state==='ready' && agent!==null;
-    allButtons.forEach(b=>b.disabled=!isReady);
-
-    statusDisplay.classList.remove('bg-gray-100','bg-blue-200','bg-green-200','bg-red-200','bg-red-500');
-
-    if(state==='ready'){
-        statusDisplay.textContent='Current Status: READY TO CONNECT. Select a language to begin.';
-        allButtons.forEach(b=>{
-            b.classList.remove('active-call');
-            if(b.id==='btn-en') b.innerHTML='<span class="flag-emoji">🇬🇧</span> English';
-            if(b.id==='btn-ms') b.innerHTML='<span class="flag-emoji">🇮🇩</span> Bahasa Indonesia';
-            if(b.id==='btn-zh') b.innerHTML='<span class="flag-emoji">🇨🇳</span> Mandarin';
-        });
-    }else if(state==='connecting'){
-        statusDisplay.classList.add('bg-blue-200');
-        if(btn) btn.innerHTML=`${btn.querySelector('.flag-emoji').outerHTML} Connecting...`;
-    }else if(state==='active'){
-        statusDisplay.classList.add('bg-green-200');
-        if(btn){
-            btn.innerHTML='Click to END CALL';
-            btn.classList.add('active-call');
-        }
-    }else{
-        statusDisplay.textContent=`Current Status: ${state.toUpperCase()}.`;
-        statusDisplay.classList.add('bg-gray-100');
-    }
-}
-
-function startCall(language){
-    if(!agent){
-        statusDisplay.textContent='ERROR: Agent not ready.';
-        statusDisplay.classList.add('bg-red-200');
-        return;
-    }
-
-    currentCallButton=document.getElementById(`btn-${language.slice(0,2).toLowerCase()}`);
-
-    if(agent.getCallState && agent.getCallState()==='active'){
-        agent.stop();
-        updateUIState('ending');
-        return;
-    }
-
-    updateUIState('connecting', currentCallButton);
-
-    const overrides={
-        firstMessage:`Hello, thank you for calling BPJS Customer Support. I see you selected ${language}. Please conduct the entire conversation in ${language}. How may I help you today?`,
-        variableValues:{preferred_language:language}
-    };
-
-    agent.start(ASSISTANT_ID,{assistantOverrides:overrides});
-}
-
-function setupVapiListeners(){
-    agent.on('call-start',()=>{
-        updateUIState('active',currentCallButton);
-        console.log('Call started.');
-    });
-
-    agent.on('call-end',()=>{
-        setTimeout(()=>updateUIState('ready'),1000);
-        console.log('Call ended.');
-    });
-
-    agent.on('error',(e)=>{
-        statusDisplay.textContent=`ERROR: ${e.message}`;
-        statusDisplay.classList.replace('bg-green-200','bg-red-200');
-        console.error("VAPI Error:",e);
-        updateUIState('ready');
-    });
-}
-</script>
-
+    </script>
 </body>
 </html>
 
