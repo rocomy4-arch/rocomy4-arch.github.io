@@ -1,175 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multilingual Customer Support - BPJS</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f7f9;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .call-btn {
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            min-width: 150px;
-        }
-        .call-btn:hover:enabled {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        .call-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .active-call {
-            background-color: #DC3545 !important;
-        }
-        .flag-emoji {
-            font-size: 1.25rem;
-            margin-right: 0.5rem;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BPJS AI Customer Support</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body { font-family: 'Inter', sans-serif; background-color: #f4f7f9; min-height:100vh; display:flex; justify-content:center; align-items:center; }
+.call-btn { transition: all 0.2s ease-in-out; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.1); min-width:150px;}
+.call-btn:hover:enabled { opacity:0.9; transform:translateY(-1px);}
+.call-btn:disabled { opacity:0.6; cursor:not-allowed;}
+.active-call { background-color:#DC3545 !important; }
+.flag-emoji { font-size:1.25rem; margin-right:0.5rem;}
+</style>
 </head>
-<body class="p-4">
+<body>
 
-    <div class="container bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">BPJS Customer Support</h1>
-        <p class="text-lg text-gray-600 mb-8">Select your language to speak with our AI support agent.</p>
+<div class="container bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full">
+<h1 class="text-3xl font-bold text-gray-800 mb-2">BPJS Customer Support</h1>
+<p class="text-lg text-gray-600 mb-8">Select your language to speak with our AI support agent.</p>
 
-        <!-- Language Selection Buttons -->
-        <div id="language-buttons" class="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0 justify-center mb-8">
-            <button id="btn-en" onclick="startCall('English')" class="call-btn py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg text-sm" disabled>
-                <span class="flag-emoji">🇬🇧</span> English
-            </button>
-            <button id="btn-ms" onclick="startCall('Bahasa Indonesia')" class="call-btn py-3 px-6 bg-yellow-500 text-gray-900 font-semibold rounded-lg text-sm" disabled>
-                <span class="flag-emoji">🇮🇩</span> Bahasa Indonesia
-            </button>
-            <button id="btn-zh" onclick="startCall('Mandarin')" class="call-btn py-3 px-6 bg-red-600 text-white font-semibold rounded-lg text-sm" disabled>
-                <span class="flag-emoji">🇨🇳</span> Mandarin
-            </button>
-        </div>
+<div id="language-buttons" class="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0 justify-center mb-8">
+    <button id="btn-en" onclick="startCall('English')" class="call-btn py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg text-sm" disabled>
+        <span class="flag-emoji">🇬🇧</span> English
+    </button>
+    <button id="btn-ms" onclick="startCall('Bahasa Indonesia')" class="call-btn py-3 px-6 bg-yellow-500 text-gray-900 font-semibold rounded-lg text-sm" disabled>
+        <span class="flag-emoji">🇮🇩</span> Bahasa Indonesia
+    </button>
+    <button id="btn-zh" onclick="startCall('Mandarin')" class="call-btn py-3 px-6 bg-red-600 text-white font-semibold rounded-lg text-sm" disabled>
+        <span class="flag-emoji">🇨🇳</span> Mandarin
+    </button>
+</div>
 
-        <div id="call-status" class="mt-6 p-3 text-sm rounded-lg bg-gray-100 text-gray-700">
-            Current Status: Waiting for VAPI SDK...
-        </div>
-    </div>
+<div id="call-status" class="mt-6 p-3 text-sm rounded-lg bg-gray-100 text-gray-700">
+    Current Status: Waiting for VAPI SDK...
+</div>
+</div>
 
-    <!-- Load VAPI SDK locally -->
-    <script src="vapi-sdk.umd.js" defer></script>
+<!-- Vapi Web SDK (Use local copy or CDN) -->
+<script src="vapi-sdk.umd.js" defer></script>
+<!-- <script src="https://unpkg.com/@vapi-ai/web"></script> -->
 
-    <script>
-        const PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337';
-        const ASSISTANT_ID = 'f62f4b24-c609-4c0a-a00d-362d12bed70e';
+<script>
+const PUBLIC_KEY = '7381b5ac-d4a7-46aa-895d-0003fa16d337';
+const ASSISTANT_ID = 'f62f4b24-c609-4c0a-a00d-362d12bed70e';
 
-        let agent = null;
-        let currentCallButton = null;
+let agent = null;
+let currentCallButton = null;
 
-        const statusDisplay = document.getElementById('call-status');
+const statusDisplay = document.getElementById('call-status');
 
-        // Initialize VAPI client after DOM & SDK loaded
-        window.addEventListener('load', () => {
-            if (typeof Vapi !== 'undefined') {
-                try {
-                    agent = new Vapi(PUBLIC_KEY);
-                    console.log('VAPI client initialized successfully.');
-                    setupVapiListeners();
-                    updateUIState('ready');
-                } catch (e) {
-                    statusDisplay.textContent = 'CRITICAL ERROR: Failed to initialize VAPI.';
-                    statusDisplay.classList.replace('bg-gray-100', 'bg-red-500');
-                    statusDisplay.classList.add('text-white');
-                    console.error("VAPI Initialization Error:", e);
-                }
-            } else {
-                statusDisplay.textContent = 'CRITICAL ERROR: VAPI SDK not found.';
-                statusDisplay.classList.replace('bg-gray-100', 'bg-red-500');
-                statusDisplay.classList.add('text-white');
-            }
+window.addEventListener('load', () => {
+    if (typeof Vapi !== 'undefined') {
+        try {
+            agent = new Vapi(PUBLIC_KEY); // Initialize WebRTC client
+            console.log('VAPI client initialized successfully.');
+            setupVapiListeners();
+            updateUIState('ready');
+        } catch(e) {
+            statusDisplay.textContent = 'CRITICAL ERROR: Failed to initialize VAPI.';
+            statusDisplay.classList.replace('bg-gray-100','bg-red-500');
+            statusDisplay.classList.add('text-white');
+            console.error("VAPI Init Error:", e);
+        }
+    } else {
+        statusDisplay.textContent = 'CRITICAL ERROR: VAPI SDK not found.';
+        statusDisplay.classList.replace('bg-gray-100','bg-red-500');
+        statusDisplay.classList.add('text-white');
+    }
+});
+
+function updateUIState(state, btn=null){
+    const allButtons = document.querySelectorAll('.call-btn');
+    const isReady = state==='ready' && agent!==null;
+    allButtons.forEach(b=>b.disabled = !isReady);
+
+    statusDisplay.classList.remove('bg-gray-100','bg-blue-200','bg-green-200','bg-red-200','bg-red-500');
+
+    if(state==='ready'){
+        statusDisplay.textContent='Current Status: READY TO CONNECT. Select a language to begin.';
+        allButtons.forEach(b=>{
+            b.classList.remove('active-call');
+            if(b.id==='btn-en') b.innerHTML='<span class="flag-emoji">🇬🇧</span> English';
+            if(b.id==='btn-ms') b.innerHTML='<span class="flag-emoji">🇮🇩</span> Bahasa Indonesia';
+            if(b.id==='btn-zh') b.innerHTML='<span class="flag-emoji">🇨🇳</span> Mandarin';
         });
-
-        function updateUIState(state, btn = null) {
-            const allButtons = document.querySelectorAll('.call-btn');
-            const isReady = state === 'ready' && agent !== null;
-            allButtons.forEach(b => b.disabled = !isReady);
-
-            statusDisplay.classList.remove('bg-gray-100', 'bg-blue-200', 'bg-green-200', 'bg-red-200', 'bg-red-500');
-
-            if (state === 'ready') {
-                statusDisplay.textContent = 'Current Status: READY TO CONNECT. Select a language to begin.';
-                allButtons.forEach(b => {
-                    b.classList.remove('active-call');
-                    if(b.id === 'btn-en') b.innerHTML = '<span class="flag-emoji">🇬🇧</span> English';
-                    if(b.id === 'btn-ms') b.innerHTML = '<span class="flag-emoji">🇮🇩</span> Bahasa Indonesia';
-                    if(b.id === 'btn-zh') b.innerHTML = '<span class="flag-emoji">🇨🇳</span> Mandarin';
-                });
-            } else if (state === 'connecting') {
-                statusDisplay.classList.add('bg-blue-200');
-                if (btn) btn.innerHTML = `${btn.querySelector('.flag-emoji').outerHTML} Connecting...`;
-            } else if (state === 'active') {
-                statusDisplay.classList.add('bg-green-200');
-                if (btn) {
-                    btn.innerHTML = `Click to END CALL`;
-                    btn.classList.add('active-call');
-                }
-            } else {
-                statusDisplay.textContent = `Current Status: ${state.toUpperCase()}.`;
-                statusDisplay.classList.add('bg-gray-100');
-            }
+    }else if(state==='connecting'){
+        statusDisplay.classList.add('bg-blue-200');
+        if(btn) btn.innerHTML=`${btn.querySelector('.flag-emoji').outerHTML} Connecting...`;
+    }else if(state==='active'){
+        statusDisplay.classList.add('bg-green-200');
+        if(btn){
+            btn.innerHTML='Click to END CALL';
+            btn.classList.add('active-call');
         }
+    }else{
+        statusDisplay.textContent=`Current Status: ${state.toUpperCase()}.`;
+        statusDisplay.classList.add('bg-gray-100');
+    }
+}
 
-        function startCall(language) {
-            if (!agent) {
-                statusDisplay.textContent = 'ERROR: Agent not ready.';
-                statusDisplay.classList.add('bg-red-200');
-                return;
-            }
+function startCall(language){
+    if(!agent){
+        statusDisplay.textContent='ERROR: Agent not ready.';
+        statusDisplay.classList.add('bg-red-200');
+        return;
+    }
 
-            currentCallButton = document.getElementById(`btn-${language.slice(0,2).toLowerCase()}`);
+    currentCallButton=document.getElementById(`btn-${language.slice(0,2).toLowerCase()}`);
 
-            if (agent.getCallState && agent.getCallState() === 'active') {
-                agent.stop();
-                updateUIState('ending');
-                return;
-            }
+    if(agent.getCallState && agent.getCallState()==='active'){
+        agent.stop();
+        updateUIState('ending');
+        return;
+    }
 
-            updateUIState('connecting', currentCallButton);
+    updateUIState('connecting', currentCallButton);
 
-            const overrides = {
-                firstMessage: `Hello, thank you for calling BPJS Customer Support. I see you selected ${language}. Please conduct the entire conversation in ${language}. How may I help you today?`,
-                variableValues: { preferred_language: language }
-            };
+    const overrides={
+        firstMessage:`Hello, thank you for calling BPJS Customer Support. I see you selected ${language}. Please conduct the entire conversation in ${language}. How may I help you today?`,
+        variableValues:{preferred_language: language}
+    };
 
-            agent.start(ASSISTANT_ID, { assistantOverrides: overrides });
-        }
+    agent.start(ASSISTANT_ID,{assistantOverrides:overrides});
+}
 
-        function setupVapiListeners() {
-            agent.on('call-start', () => {
-                updateUIState('active', currentCallButton);
-                console.log('Call started.');
-            });
+function setupVapiListeners(){
+    agent.on('call-start',()=>{
+        updateUIState('active', currentCallButton);
+        console.log('Call started.');
+    });
 
-            agent.on('call-end', () => {
-                setTimeout(() => updateUIState('ready'), 1000);
-                console.log('Call ended.');
-            });
+    agent.on('call-end',()=>{
+        setTimeout(()=>updateUIState('ready'),1000);
+        console.log('Call ended.');
+    });
 
-            agent.on('error', (e) => {
-                statusDisplay.textContent = `ERROR: ${e.message}`;
-                statusDisplay.classList.replace('bg-green-200', 'bg-red-200');
-                console.error("VAPI Error:", e);
-                updateUIState('ready');
-            });
-        }
-    </script>
-
+    agent.on('error',(e)=>{
+        statusDisplay.textContent=`ERROR: ${e.message}`;
+        statusDisplay.classList.replace('bg-green-200','bg-red-200');
+        console.error("VAPI Error:",e);
+        updateUIState('ready');
+    });
+}
+</script>
 </body>
 </html>
