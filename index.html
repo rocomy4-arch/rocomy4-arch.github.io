@@ -27,9 +27,15 @@
             min-width: 150px;
         }
 
-        .call-btn:hover {
+        .call-btn:hover:enabled {
             opacity: 0.9;
             transform: translateY(-1px);
+        }
+        
+        /* Disabled state for buttons while loading VAPI */
+        .call-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         /* Styling for the End Call/Active state */
@@ -51,34 +57,37 @@
             <button 
                 id="btn-en"
                 onclick="startCall('English')" 
-                class="call-btn py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg text-sm">
+                class="call-btn py-3 px-6 bg-blue-600 text-white font-semibold rounded-lg text-sm"
+                disabled>
                 English
             </button>
 
             <button 
                 id="btn-ms"
                 onclick="startCall('Bahasa Indonesia')" 
-                class="call-btn py-3 px-6 bg-yellow-500 text-gray-900 font-semibold rounded-lg text-sm">
+                class="call-btn py-3 px-6 bg-yellow-500 text-gray-900 font-semibold rounded-lg text-sm"
+                disabled>
                 Bahasa Indonesia
             </button>
 
             <button 
                 id="btn-zh"
                 onclick="startCall('Mandarin')" 
-                class="call-btn py-3 px-6 bg-red-600 text-white font-semibold rounded-lg text-sm">
+                class="call-btn py-3 px-6 bg-red-600 text-white font-semibold rounded-lg text-sm"
+                disabled>
                 Mandarin
             </button>
         </div>
 
         <div id="call-status" class="mt-6 p-3 text-sm rounded-lg bg-gray-100 text-gray-700">
-            Current Status: Waiting for client to load...
+            Current Status: Waiting for VAPI SDK...
         </div>
         
     </div>
 
     <!-- 
         ====================================================================
-        VAPI Core SDK (UMD link)
+        VAPI Core SDK (UMD link) - The VAPI branding is hidden as we use the core SDK.
     -->
     <script src="https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi-sdk.umd.js"></script>
     <script>
@@ -93,19 +102,18 @@
         const statusDisplay = document.getElementById('call-status');
         
         // --- Initialization Function ---
-        // We use a self-executing function that runs immediately, 
-        // but it checks the Vapi object's existence and handles initialization.
+        // This function attempts to initialize Vapi every 100ms until the 'Vapi' class is defined.
         function initVapiClient() {
-             // CRITICAL FIX: Ensure Vapi is available in the global scope before instantiating.
-             // We use a setTimeout loop as the most robust way to poll for a globally defined variable
-             // when dealing with CDN scripts that load asynchronously relative to the main script block.
+             // CRITICAL FIX: Check if Vapi is available in the global scope
              if (typeof Vapi !== 'undefined') {
                  try {
+                    // Initialize VAPI client
                     agent = new Vapi(PUBLIC_KEY);
                     console.log('VAPI client initialized successfully.');
                     
                     setupVapiListeners();
-                    updateUIState('ready'); // Set initial state
+                    // FIX: Set status to READY TO CONNECT upon successful initialization
+                    updateUIState('ready'); 
                     
                 } catch (e) {
                     statusDisplay.textContent = `CRITICAL ERROR: Failed to initialize VAPI. Check Public Key.`;
@@ -114,13 +122,12 @@
                     console.error("VAPI Initialization Error:", e);
                 }
              } else {
-                 // Retry initialization every 100ms until Vapi is defined.
-                 // This resolves the timing issue that window.onload couldn't fix.
+                 // If Vapi is not defined, wait 100ms and try again (recursive timeout loop)
                  setTimeout(initVapiClient, 100);
              }
         }
         
-        // Start the initialization check immediately
+        // Start the initialization check immediately when the script runs
         initVapiClient();
 
 
@@ -128,11 +135,16 @@
         function updateUIState(state, btn = null) {
             const allButtons = document.querySelectorAll('.call-btn');
             
-            // Check if the agent is initialized 
+            // Determine if buttons should be enabled: only if state is 'ready' and agent is initialized
             const isReady = state === 'ready' && agent !== null;
             allButtons.forEach(b => b.disabled = !isReady);
             
-            statusDisplay.textContent = `Current Status: ${state.toUpperCase()}`;
+            // FIX: Custom text for the Ready state
+            if (state === 'ready') {
+                 statusDisplay.textContent = 'Current Status: READY TO CONNECT. Select a language to begin.';
+            } else {
+                 statusDisplay.textContent = `Current Status: ${state.toUpperCase()}.`;
+            }
 
             // --- Simplified Tailwind Class Toggle ---
             statusDisplay.classList.remove('bg-gray-100', 'bg-blue-200', 'bg-green-200', 'bg-red-200', 'bg-red-500');
@@ -159,14 +171,16 @@
         }
 
         // --- Core Call Control Function ---
+        // This function is called when a language button is clicked.
         function startCall(language) {
             // Check if Vapi client is actually ready before trying to use it
             if (!agent) {
-                 statusDisplay.textContent = 'ERROR: Agent not ready. Please wait for initialization.';
+                 statusDisplay.textContent = 'ERROR: Agent not ready. Initialization failed or still pending.';
                  statusDisplay.classList.add('bg-red-200');
                  return;
             }
 
+            // Determine which button was clicked to update its text during the call
             currentCallButton = document.getElementById(`btn-${language.slice(0, 2).toLowerCase()}`);
             
             // Logic to end the call if it's already active
@@ -181,10 +195,11 @@
             const overrides = {
                 // We use the language preference in the first message to force the AI context
                 firstMessage: `Hello, thank you for calling BPJS Customer Support. I see you selected ${language}. How may I help you today?`,
-                // You can set the language variable directly for the AI model if needed
+                // Optional: pass the language selection to the n8n workflow or tool call context
                 variableValues: { preferred_language: language }
             };
             
+            // Start the WebRTC call
             agent.start(ASSISTANT_ID, { assistantOverrides: overrides });
         }
         
